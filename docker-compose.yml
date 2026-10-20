@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cipher
+      POSTGRES_PASSWORD: cipher
+      POSTGRES_DB: cipher
+    command:
+      - postgres
+      # No WAL archiving, no replication slots, no logical replication:
+      # the 24 h TTL is the durability model, there is nothing to archive.
+      - -c
+      - archive_mode=off
+      - -c
+      - wal_level=minimal
+      - -c
+      - max_wal_senders=0
+      - -c
+      - log_statement=none
+      - -c
+      - log_min_duration_statement=-1
+    volumes:
+      - cipher-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cipher -d cipher"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  relay:
+    build: ./relay
+    environment:
+      CIPHER_DATABASE_URL: postgresql://cipher:cipher@db:5432/cipher
+      CIPHER_TEST_PROFILE: "0"
+      # Sideloaded APKs cannot pass Play Integrity.  Invite creation is
+      # one-time and rate-limited instead; see docs/decisions.md D-007.
+      CIPHER_PLAY_INTEGRITY: "0"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+
+volumes:
+  cipher-db:

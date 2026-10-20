@@ -1,0 +1,42 @@
+[project]
+name = "cipher"
+version = "0.1.0"
+description = "Cipher - ephemeral 1:1 secure messenger"
+requires-python = ">=3.11"
+dependencies = [
+    "flet==0.28.3",
+    "cryptography>=43",
+    "qrcode>=7.4",
+    "pillow>=10",
+    "httpx>=0.27",
+    "cipher-native",
+]
+
+[tool.flet]
+project = "cipher"
+product = "Cipher"
+description = "Ephemeral encrypted 1:1 messenger"
+company = "Cipher"
+copyright = "Cipher"
+org = "dev.cipher"
+
+[tool.flet.dev_packages]
+cipher-native = "../native"
+
+[tool.flet.app]
+module = "main"
+
+[tool.flet.android]
+min_sdk_version = 26
+target_sdk_version = 34
+# Camera is used only for scanning pairing invites.  It is optional at runtime.
+permissions = ["camera"]
+
+[tool.flet.build]
+number = 1
+version = "0.1.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-q"

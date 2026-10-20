@@ -1,0 +1,7 @@
+{
+  "url": "https://relay.example",
+  "pins": [
+    "REPLACE_WITH_BASE64_SHA256_SPKI_PIN",
+    "OPTIONAL_BACKUP_PIN"
+  ]
+}

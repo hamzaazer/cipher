@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+native/build/
+
+# Flet / Flutter
+app/build/
+app/.flutter-plugins*
+app/.dart_tool/
+.flutter-plugins*
+.dart_tool/
+*.iml
+
+# Local secrets (never commit)
+app/relay_config.json
+*.keystore
+*.jks
+key.properties
+.env
+docs/local-keys/
+
+# Data that must never be committed
+*.db
+*.sqlite3
+*.log
