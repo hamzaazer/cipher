@@ -1,0 +1,8 @@
+{
+  "name": "ratchet-v1",
+  "chain_key": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "index": 0,
+  "message_key": "0ca8a5d075c37e999ad0d30cae47f5d9e1ca4a83da167c158a2d948a45862229",
+  "next_chain_key": "b77baa8efd274770424b21b49de8c2e577fdd41e9d82646a522afcacb97ee630",
+  "next_index": 1
+}

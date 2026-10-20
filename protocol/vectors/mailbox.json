@@ -1,0 +1,8 @@
+{
+  "name": "mailbox-v2",
+  "conv_secret": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "day_epoch": 20000,
+  "mailbox_id_a": "b9710acfb161d893d8a2644946496067",
+  "mailbox_id_b": "37d98f7dc84be7aeca15740c13ecf1aa",
+  "mailbox_id_a_next_day": "8dffbc26fafdcadbf43e6a1851439477"
+}
