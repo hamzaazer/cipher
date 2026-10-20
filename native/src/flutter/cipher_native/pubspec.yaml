@@ -1,0 +1,20 @@
+name: cipher_native
+description: Cipher native identity and secure-screen bridge
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: ">=1.17.0"
+
+dependencies:
+  flet: 0.28.3
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: dev.cipher.ciphernative
+        pluginClass: CipherNativePlugin

@@ -1,0 +1,21 @@
+[project]
+name = "cipher-native"
+version = "0.1.0"
+description = "Cipher native bridge: Android Keystore identity and FLAG_SECURE"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "flet==0.28.3",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["cipher_native*", "flutter*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"flutter.cipher_native" = ["**/*"]
