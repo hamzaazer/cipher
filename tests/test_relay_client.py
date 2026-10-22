@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID
 
 from relay_client import (
+    MAX_RESPONSE_BYTES,
     PinMismatch,
     RelayClient,
     RelayNotFound,
@@ -42,6 +43,11 @@ def test_spki_pin_is_stable_and_checked():
     assert pin_matches(der, (pin,))
     assert not pin_matches(der, ("A" * 44,))
     assert not pin_matches(der, ())
+
+
+def test_response_cap_covers_a_full_mailbox():
+    # 200 envelopes x 12 KiB payload, base64-expanded, must fit in one drain.
+    assert MAX_RESPONSE_BYTES > 200 * 12 * 1024 * 4 // 3
 
 
 def test_release_refuses_cleartext(monkeypatch):

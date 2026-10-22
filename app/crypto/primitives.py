@@ -8,7 +8,6 @@ cipher, a MAC or a KDF by hand.
 from __future__ import annotations
 
 import hashlib
-import hmac
 import os
 from typing import Tuple
 
@@ -35,24 +34,6 @@ def hkdf(ikm: bytes, info: bytes, length: int, salt: bytes = b"") -> bytes:
         salt=salt or None,
         info=info,
     ).derive(ikm)
-
-
-def hkdf_expand(prk: bytes, info: bytes, length: int) -> bytes:
-    """RFC 5869 HKDF-Expand, used where the spec fixes the extract step."""
-    if length > 255 * HASH().digest_size:
-        raise ValueError("hkdf: too much output")
-    out = b""
-    t = b""
-    counter = 1
-    while len(out) < length:
-        t = hmac.new(prk, t + info + bytes([counter]), HASH).digest()
-        out += t
-        counter += 1
-    return out[:length]
-
-
-def hkdf_extract(salt: bytes, ikm: bytes) -> bytes:
-    return hmac.new(salt, ikm, HASH).digest()
 
 
 def aead_encrypt(key: bytes, nonce: bytes, plaintext: bytes, aad: bytes) -> bytes:

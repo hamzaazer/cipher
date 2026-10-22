@@ -73,8 +73,9 @@ class CipherNativePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 }
                 "setSecure" -> {
                     val enabled = call.argument<String>("enabled")?.toBoolean() ?: true
-                    // Release builds cannot turn screen protection off.
-                    val effective = enabled || isDebuggable()
+                    // Release builds cannot turn screen protection off; only a
+                    // debuggable build may clear the flag for local inspection.
+                    val effective = enabled || !isDebuggable()
                     applySecure(activity, effective)
                     result.success(
                         JSONObject()

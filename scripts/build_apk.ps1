@@ -38,7 +38,16 @@ if ($relayUrl -or $relayPins) {
         $pins = $relayPins.Split(",") | ForEach-Object { $_.Trim() } | Where-Object { $_ }
     }
     $config = @{ url = $relayUrl; pins = $pins } | ConvertTo-Json
-    Set-Content -Path (Join-Path $Stage "app\relay_config.json") -Value $config -Encoding UTF8
+    # Windows PowerShell's `Set-Content -Encoding UTF8` emits a BOM, which
+    # `json.loads` rejects.  Write UTF-8 without a BOM.
+    $configPath = Join-Path $Stage "app\relay_config.json"
+    [System.IO.File]::WriteAllText(
+        $configPath, $config, (New-Object System.Text.UTF8Encoding($false))
+    )
+} else {
+    # Do not let a developer's local relay_config.json leak into a build that
+    # was not explicitly configured; the app must show the disabled banner.
+    Remove-Item -Force (Join-Path $Stage "app\relay_config.json") -ErrorAction SilentlyContinue
 }
 
 $env:JAVA_HOME = "C:\Users\Informatics\java\17.0.13+11"
@@ -48,7 +57,14 @@ $env:PYTHONIOENCODING = "utf-8"
 # /MIR excludes build directories, so generated Flutter package copies from a
 # previous build survive in the staging tree.  They can contain stale source
 # (and stale Kotlin packages), so remove them before every build.
+#
+# `native\build` is created by pip when it builds the local extension wheel.
+# Setuptools copies package data into it and does not delete files that were
+# removed or renamed upstream, so an old `dev/cipher/native` Kotlin file would
+# otherwise be bundled alongside the current `dev/cipher/ciphernative` one.
 Remove-Item -Recurse -Force (Join-Path $Stage "app\build") -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force (Join-Path $Stage "native\build") -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force (Join-Path $Stage "native\src\cipher_native.egg-info") -ErrorAction SilentlyContinue
 
 Push-Location (Join-Path $Stage "app")
 try {

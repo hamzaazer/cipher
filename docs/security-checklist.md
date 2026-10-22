@@ -53,7 +53,7 @@ enforced or untested on hardware), **FAIL** (not delivered), **N/A**.
 | Phase 6 release docs + checklist | PASS | This file, protocol, threat model, deployment, decisions |
 | Installable APK produced | PASS | `app/build/apk/app-release.apk` (see build log) |
 | APK verified on a physical/emulated Android device | PARTIAL | Install/launch and Keystore verification are deployment steps; build output is verified structurally |
-| All tests pass | PASS | `67 passed` at the time of writing |
+| All tests pass | PASS | `69 passed` at the time of writing |
 | Every deviation logged | PASS | `docs/decisions.md` D-001..D-008 |
 | No claim beyond enforcement | PASS | Explicit FAIL/PARTIAL rows above |
 

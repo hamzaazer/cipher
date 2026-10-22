@@ -28,7 +28,9 @@ from cryptography.hazmat.primitives import serialization
 
 from config import release
 
-MAX_RESPONSE_BYTES = 2 * 1024 * 1024
+# A mailbox may hold 200 envelopes of up to 12 KiB.  Base64 and JSON framing
+# push a legal drain response above 3 MiB, so the read cap must exceed it.
+MAX_RESPONSE_BYTES = 8 * 1024 * 1024
 
 
 class RelayError(RuntimeError):

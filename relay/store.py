@@ -108,7 +108,11 @@ class PostgresStore:
         with self._schema_lock:
             if not self._schema_ready:
                 with conn.cursor() as cur:
-                    cur.execute(SCHEMA)
+                    # Execute statements individually: not every psycopg
+                    # version accepts a multi-statement string in one call.
+                    for statement in SCHEMA.split(";"):
+                        if statement.strip():
+                            cur.execute(statement)
                 self._schema_ready = True
 
     def put_invite(self, invite_id: bytes, payload: bytes, now: int, expires_at: int) -> None:

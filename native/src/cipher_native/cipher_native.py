@@ -123,14 +123,20 @@ class CipherNative(ft.Control):
     def will_unmount(self) -> None:
         unbind(self)
 
-    def call(self, method: str, args: Optional[dict[str, str]] = None) -> dict[str, Any]:
+    def call(
+        self,
+        method: str,
+        args: Optional[dict[str, str]] = None,
+        *,
+        timeout: float = METHOD_TIMEOUT_SECONDS,
+    ) -> dict[str, Any]:
         if self.page is None:
             raise NativeUnavailable("native control is not attached to a page")
         raw = self.invoke_method(
             method,
             args or {},
             wait_for_result=True,
-            wait_timeout=METHOD_TIMEOUT_SECONDS,
+            wait_timeout=timeout,
         )
         if raw is None:
             raise NativeUnavailable("native bridge timed out")
@@ -145,7 +151,9 @@ class CipherNative(ft.Control):
     def status(self) -> dict[str, Any]:
         # Never cached: hardware/secure flags can change after key creation or
         # activity reattachment, and the security screen must probe reality.
-        result = self.call("status")
+        # A short timeout keeps a startup subscription race from blocking the
+        # UI for the full signing timeout.
+        result = self.call("status", timeout=2)
         if not result.get("available"):
             raise NativeUnavailable(result.get("reason", "native bridge unavailable"))
         return result

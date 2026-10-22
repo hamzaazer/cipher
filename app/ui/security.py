@@ -7,6 +7,7 @@ mode loudly: file identity, no hardware binding, no screenshot protection.
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -39,8 +40,22 @@ class SecurityState:
 def probe(native: Any = None) -> SecurityState:
     state = SecurityState()
     if native is not None:
-        try:
-            status = native.status()
+        status = None
+        last_error: Optional[BaseException] = None
+        # The Flutter control subscribes its methods in `build`, which can
+        # happen a moment after `page.add` returns.  Retry briefly instead of
+        # declaring the hardware path dead on a startup race.
+        for attempt in range(3):
+            try:
+                status = native.status()
+                break
+            except Exception as exc:
+                last_error = exc
+                if attempt < 2:
+                    time.sleep(0.15)
+        if status is None:
+            state.degraded_reason = _reason(last_error or RuntimeError("native status failed"))
+        else:
             state.native_status = status
             state.native = bool(status.get("available"))
             state.secure_screen = bool(status.get("secure"))
@@ -48,8 +63,6 @@ def probe(native: Any = None) -> SecurityState:
             state.strongbox = bool(status.get("strongbox"))
             sdk = status.get("sdk")
             state.sdk = int(sdk) if isinstance(sdk, (int, float, str)) else None
-        except Exception as exc:
-            state.degraded_reason = _reason(exc)
 
     backend = None
     if state.native:

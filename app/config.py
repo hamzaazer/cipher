@@ -25,7 +25,8 @@ def _packaged() -> dict:
     the environment still wins for desktop development and tests.
     """
     try:
-        raw = json.loads(_PACKAGED_CONFIG.read_text(encoding="utf-8"))
+        # utf-8-sig tolerates a BOM written by older build scripts.
+        raw = json.loads(_PACKAGED_CONFIG.read_text(encoding="utf-8-sig"))
         return raw if isinstance(raw, dict) else {}
     except Exception:
         return {}

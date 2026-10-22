@@ -31,7 +31,7 @@ from messaging import (
     PendingPair,
 )
 from paths import db_path
-from relay_client import RelayClient
+from relay_client import PinMismatch, RelayClient
 from storage.store import CipherStore, StorageError
 from ui.security import SecurityState, banner, probe, security_rows, status_line
 from ui.theme import (
@@ -87,15 +87,21 @@ class CipherApp:
         self.wiped = False
         self.last_error = ""
 
-        self.native = CipherNative() if CipherNative is not None else None
+        # The native control must be mounted before `status` can be called:
+        # before `page.add`, `Control.page` is None and the platform call would
+        # assert, silently forcing every Android launch into degraded mode.
+        # Only create it on Android; desktop has no plugin registration.
+        is_android = page.platform == ft.PagePlatform.ANDROID
+        self.native = (
+            CipherNative() if CipherNative is not None and is_android else None
+        )
         if self.native is not None:
             page.overlay.append(self.native)
 
-        self.security: SecurityState = probe(self.native)
+        self.security: SecurityState = SecurityState()
         self.service: Optional[MessagingService] = None
         self.service_error = ""
         self.store: Optional[CipherStore] = None
-        self._init_service()
 
         self._ui_lock = threading.RLock()
         self._poll_stop = threading.Event()
@@ -114,7 +120,12 @@ class CipherApp:
         self.root = ft.Column(
             expand=True, spacing=0, controls=[self.banner_host, self.top_host, self.body]
         )
+        # `page.add` mounts the overlay native control and runs its
+        # `did_mount`, which binds the Python bridge.  Probe only afterwards so
+        # the Keystore/screenshot flags reflect the real channel.
         page.add(self.root)
+        self.security = probe(self.native)
+        self._init_service()
         page.update()
 
         self._render()
@@ -186,13 +197,12 @@ class CipherApp:
         if warning is not None:
             self.banner_host.controls.append(warning)
         if self.service is None and not self.wiped:
-            self.banner_host.controls.append(
-                _notice(
-                    "Relay not configured: pairing and messaging are disabled. "
-                    "Set CIPHER_RELAY_URL and CIPHER_RELAY_PINS for a release build.",
-                    WARN,
-                )
+            detail = self.service_error or (
+                "Relay not configured in this build: pairing and messaging "
+                "are disabled. Rebuild with CIPHER_RELAY_URL and "
+                "CIPHER_RELAY_PINS."
             )
+            self.banner_host.controls.append(_notice(detail, WARN))
 
     def _set_screen(self, screen: str, conv_id: Optional[bytes] = None) -> None:
         self.screen = screen
@@ -1117,11 +1127,9 @@ class CipherApp:
 
 
 def _friendly_error(exc: BaseException) -> str:
-    if isinstance(exc, (MessagingError, StorageError, IdentityError)):
+    if isinstance(exc, (MessagingError, StorageError, IdentityError, PinMismatch)):
         return str(exc)
     name = exc.__class__.__name__
-    if name in {"PinMismatch"}:
-        return "Relay certificate does not match the pinned key."
     if name in {"RelayNotFound"}:
         return "Invite is invalid or already used."
     if name in {"RelayRateLimited"}:

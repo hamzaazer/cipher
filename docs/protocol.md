@@ -53,8 +53,7 @@ The relay never learns `S`, so it cannot derive any key from the invite id.
 5. Derive:
    ```
    dh   = X25519(eph_a_priv, eph_b_pub)
-   prk  = HMAC-SHA256(S, dh)
-   okm  = HKDF-Expand(prk, "cipher/pair/v1", 64)
+   okm  = HKDF-SHA256(ikm = dh, salt = S, info = "cipher/pair/v1", 64)
    k_enc = okm[0:32]      k_mac = okm[32:64]
    conv_seed = HKDF(k_enc, "cipher/conv/v1", 32)
    SAS = int(HKDF(k_enc, "cipher/sas/v1", 8).hex(), 16) mod 1_000_000

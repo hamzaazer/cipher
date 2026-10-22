@@ -29,8 +29,9 @@ module = "main"
 [tool.flet.android]
 min_sdk_version = 26
 target_sdk_version = 34
-# Camera is used only for scanning pairing invites.  It is optional at runtime.
-permissions = ["camera"]
+# No camera permission: v1 displays a QR code and accepts the manual secret,
+# but does not scan (D-008).  Requesting an unused sensitive permission would
+# overstate what the app does.
 
 [tool.flet.build]
 number = 1

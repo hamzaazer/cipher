@@ -45,7 +45,6 @@ from crypto.primitives import (
     aead_decrypt,
     aead_encrypt,
     hkdf,
-    hkdf_expand,
     new_x25519,
     public_bytes,
     x25519,
@@ -109,8 +108,9 @@ def derive(secret: bytes, my_eph_private: X25519PrivateKey, peer_eph_public: byt
     if len(secret) != 16:
         raise PairingError("invite secret must be 16 bytes")
     dh = x25519(my_eph_private, peer_eph_public)  # rejects low-order points
-    prk = hmac.new(secret, dh, hashlib.sha256).digest()
-    okm = hkdf_expand(prk, PAIR_INFO, 64)
+    # HKDF(salt=secret, IKM=dh) is exactly HMAC-SHA256(secret, dh) followed by
+    # RFC 5869 expand; the library performs both steps.
+    okm = hkdf(dh, PAIR_INFO, 64, salt=secret)
     k_enc, k_mac = okm[:32], okm[32:]
     conv_seed = hkdf(k_enc, CONV_INFO, 32)
     sas_value = int(hkdf(k_enc, SAS_INFO, 8).hex(), 16) % 1_000_000
